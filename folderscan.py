@@ -3,6 +3,7 @@ import os
 import time
 import win32api,win32con
 import tkinter.messagebox
+import pickle
 
 # 检查某个文件夹下的最新文件名，并返回该文件名
 def check_latest_file(target_dir):
@@ -11,18 +12,25 @@ def check_latest_file(target_dir):
     new_file_name=lists[-1]
     return new_file_name
 
-# 将程序运行过程中检查出的最新文件名用字典的形式存入文件
+# 将程序运行过程中检查出的最新文件名用pickle以二进制的形式存入文件
 def rewrite_record(filename,record_filename_hr,record_filename_con):
-    record_filename_dict = {'hr':record_filename_hr, 'consultant':record_filename_con}
-    f1 = open(filename, 'w')
-    f1.write(str(record_filename_dict))
+    record_filename_dict = {
+        'hr':record_filename_hr,
+        'consultant':record_filename_con
+    }
+    f1 = open(filename, 'wb')
+    pickle.dump(record_filename_dict, f1)
     f1.close()
 
 # 主程序
 def run(target_dir_hr, target_dir_con, record_file, interval):
     # 程序运行前先读入之前一次运行的结果，存入字典中
-    f1 = open(record_file, 'r')
-    record_filename_dict = eval(f1.read())
+    f1 = open(record_file, 'rb')
+    try:
+        record_filename_dict = pickle.load(f1)
+    except:
+        # 当存储字典的文件为空文件或者格式不正确时，初始化字典数据
+        record_filename_dict = {'hr':'nofile', 'consultant':'nofile'}
     f1.close()
     while True:
         try:
